@@ -1,17 +1,17 @@
 from qiskit import QuantumCircuit, execute, transpile, Aer 
 from qiskit.extensions import UnitaryGate,Initialize
-from qiskit.tools.visualization import plot_histogram 
+from qiskit.quantum_info import Statevector 
+from qiskit.tools.visualization import plot_bloch_vector
+from qiskit.tools.visualization import plot_histogram,plot_bloch_multivector  
 import numpy as np 
 from time import sleep 
-from qiskit.tools.monitor import job_monitor 
-from qiskit.extensions import UnitaryGate
-from qiskit.quantum_info import Statevector 
 import sys 
 from scipy.stats import unitary_group 
 import matplotlib.pyplot as plt 
 
-class SPEA():
+class bundled_changed_SPEA():
     def __init__(self,unitary,resolution = 100, error = 3, max_iters = 20):
+        
         # handle resolution 
         if not isinstance(resolution,int):
             raise TypeError("Please enter the number of intervals as an integer value")  
@@ -37,11 +37,12 @@ class SPEA():
         else:
             self.dims = 2**(U.num_qubits)
         
+        
         if isinstance(U,np.ndarray):
             self.c_unitary_gate = UnitaryGate(data = U).control(num_ctrl_qubits = 1,label = 'CU',ctrl_state = '1')
         else:
             self.c_unitary_gate = U.control(num_ctrl_qubits = 1,label = 'CU',ctrl_state = '1')
-        
+
         # handle error 
         if not isinstance(error,int):
             raise TypeError("The allowable error should be provided as an int. Interpreted as 10**(-error)")
@@ -70,17 +71,17 @@ class SPEA():
         for k in UR:
             basis.append(np.array(k,dtype = complex))
         return basis 
-    def get_cost(self,angles,state,backend):
-
+    
+    def get_circuits(self,angles,state):
         '''Given an initial state and a set of angles,
-          return the best cost and the associated angle
-          state is a normalized state in ndarray form'''
+          return the circuits that are generated with 
+          those angles'''
         result = {'cost' : -1, 'theta' : -1}
         # all theta values are iterated over for the same state
         phi = Initialize(state)
         shots = 512
         circuits = []
-
+        
         for theta in angles:
             qc = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
             # initialize the circuit 
@@ -97,10 +98,16 @@ class SPEA():
             qc.measure([0],[0])
             #generate all the circuits...
             circuits.append(qc)
-
-        #execute only once...
-        counts = execute(circuits,backend = backend,shots = shots).result().get_counts()
+              
+        return circuits 
+    
+    def get_cost(self,angles,counts,shots):
+        '''Generate the best cost and theta pair 
+        for the particular state '''
+        
+        result = {'cost':-1, 'theta': -1}
         # get the cost for this theta 
+        
         for k,theta in zip(counts,angles):
             # for all experiments you ran 
             try:
@@ -112,64 +119,63 @@ class SPEA():
                 # means this is a better theta value  
                 result['theta'] = theta 
                 result['cost'] = C_val 
-
+            
         return result 
-
     
-    def get_eigen_pair(self,backend,progress = False,randomize = True, target_cost = None):
+    def get_eigen_pair(self,backend,progress = False,randomize = True):
         '''Finding the eigenstate pair for the unitary'''
-        
+            
         if not isinstance(progress,bool):
             raise TypeError("Progress must be a boolean variable")
         
         if not isinstance(randomize,bool):
             raise Exception("Randomize must be a boolean variable")
         
-        if target_cost is not None:
-            if not isinstance(target_cost,float):
-                raise TypeError("Target cost must be a float")
-            if (target_cost <= 0 or target_cost >= 1):
-                raise ValueError("Target cost must be a float value between 0 and 1")
-        
         results = dict() 
         
         # first initialize the state phi 
         self.basis = self.get_basis_vectors(randomize)
         
+        # choose a random index 
         ind = np.random.choice(self.dims) 
         phi = self.basis[ind]
         
         # doing the method 1 of our algorithm 
         # define resolution of angles and precision 
-        if target_cost == None:
-            precision = 1/10**self.error 
-        else:
-            precision = 1 - target_cost 
-            
+        precision = 1/10**self.error 
         samples = self.resolution 
         
         # initialization of range 
         left,right = 0,1
+        shots = 512
+        
         # generate the angles
         angles = np.linspace(left,right,samples)
 
-        # iterate once 
-        result = self.get_cost(angles,phi,backend)
+        # First execution can be done without JobManager also...
+        circs = self.get_circuits(angles,phi)
+        job = execute(circs,backend = backend, shots = shots)
+        counts = job.result().get_counts()
+        result = self.get_cost(angles,counts,shots)
         
         # get initial estimates 
         cost = result['cost']
         theta_max = result['theta']
-        
+        best_phi = phi 
+
         # the range upto which theta extends iin each iteration 
         angle_range = 0.5
         # a parameter 
         a = 1 
         # start algorithm        
         iters = 0 
-        best_phi = phi 
         found = True
-        plus = (1/np.sqrt(2))*np.array([[1,1]])
-        minus = (1/np.sqrt(2))*np.array([[1,-1]])
+        plus = (1/np.sqrt(2))*np.array([1,1])
+        minus = (1/np.sqrt(2))*np.array([1,-1])
+        
+        #define IBMQManager instance
+        manager = IBMQJobManager()
+        
         while 1 - cost >= precision:
             # get angles, note if theta didn't change, then we need to 
             # again generate the same range again 
@@ -185,9 +191,22 @@ class SPEA():
             found = False # for this iteration 
             if progress:
                 print("ITERATION NUMBER",iters+1,"...")
+            
+            # generate a cost dict for each of the iterations 
+            # final result lists 
+            thetas, costs, states = [],[],[] 
+            
+            # circuit list 
+            circuits = []
+            
+            #list to store intermediate states
+            phis = []
+            
+            # 1. Circuit generation loop
             for i in range((2*self.dims)):
                 # everyone is supplied with the same range of theta in one iteration 
                 #define z
+                # make a list of the circuits
                 if i < self.dims:
                     z = 1 
                 else:
@@ -196,37 +215,81 @@ class SPEA():
                 # alter and normalise phi 
                 curr_phi = best_phi + z*a*(1 - cost)*self.basis[i % self.dims]
                 curr_phi = curr_phi / np.linalg.norm(curr_phi)
+                phis.append(curr_phi)
                 
-                # iterate (angles would be same until theta is changed)
-                res = self.get_cost(angles,curr_phi,backend)
-                curr_cost = res['cost']
-                curr_theta = res['theta']
+                # bundle the circuits together ...   
+                circs = self.get_circuits(angles,curr_phi)
+                circuits = circuits + circs
                 
-                # at this point I have the best Cost for the state PHI and the 
-#   
-                # print(curr_phi)
-               
-                if curr_cost > cost:
-                    theta_max = float(curr_theta) 
-                    cost = float(curr_cost) 
-                    best_phi = curr_phi
+                # now each iteration would see the same state as the best phi 
+                # is updated once at the end of the iteration 
+                    
+                # also, the cost is also updated only once at the end of the iteration
+            
+            
+            # 2. run the generated circuits 
+            if progress:
+                print("Transpiling circuits...")
+            circuits = transpile(circuits=circuits,backend=backend)
+            job_set = manager.run(circuits,backend = backend,name = 'Job_set'+str(iters),shots=shots)
+            if progress:
+                print("Transpilation Done!\nJob sent...")
+            job_result = job_set.results()        
+            
+            # now get the circuits in chunks of resolution each 
+            if progress:
+                print("Job has returned")
+                
+                
+            # 3. Result generation loop
+            for i in range((2*self.dims)):
+                # get the results of this basis state
+                # it will have resolution number of circuits...
+                counts = []
+                for j in range(i*self.resolution, (i+1)*self.resolution):
+                    # in this you'll get the counts 
+                    counts.append(job_result.get_counts(j))
+                
+                result = self.get_cost(counts,angles,shots)
+                
+                # get the estimates for this basis 
+                curr_theta = result['theta']
+                curr_cost = result['cost']
+                curr_phi = phis[i] # the result was generated pertaining to this phi 
+                    
+                if curr_cost > cost: # then only add this cost in the cost and states list 
+                    thetas.append(float(curr_theta))
+                    costs.append(float(curr_cost))
+                    states.append(curr_phi)
                     found = True
+                
                 if progress:
                     sys.stdout.write('\r')
                     sys.stdout.write("%f %%completed" % (100*(i+1)/(2*self.dims)))
                     sys.stdout.flush()
-                    sleep(0.2)
                 
-            # iteration completes
-            
+                
             if found == False:
                 # phi was not updated , change a 
                 a = a/2
                 if progress:
                     print("\nNo change, updating a...")
             else:
+                # if found is actually true, then only update 
+                
+                # O(n) , would update this though 
+                index = np.argmax(costs)
+                # update the parameters of the model 
+                cost = costs[index]
+                theta_max = thetas[index]
+                best_phi = states[index]
+                if progress:
+                    print("Best Phi is :",best_phi)
+                    print("Theta estimate :",theta_max)
+                    print("Current cost :",cost) 
                 angle_range /= 2 # updated phi and thus theta too -> refine theta range
             
+            # update the iterations 
             iters+=1 
             if progress:
                 print("\nCOST :",cost)
@@ -234,12 +297,11 @@ class SPEA():
             
             if iters >= self.iterations:
                 print("Maximum iterations reached for the estimation.\nTerminating algorithm...")
-                break
-            # add the warning that iters maxed out 
-        
-        # add cost, eigenvector and theta to the dict 
+                break 
+      # add cost, eigenvector and theta to the dict 
         results['cost'] = cost 
         results['theta'] = theta_max 
         results['state'] = best_phi 
+        
         return results
             

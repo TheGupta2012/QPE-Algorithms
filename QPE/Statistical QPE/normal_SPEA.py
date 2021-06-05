@@ -125,8 +125,11 @@ class SPEA():
         if not isinstance(randomize,bool):
             raise Exception("Randomize must be a boolean variable")
         
-        if not isinstance(target_cost, float) or target_cost <= 0 or target_cost >= 1:
-            raise ValueError("Target cost must be a float value between 0 and 1")
+        if target_cost is not None:
+            if not isinstance(target_cost,float):
+                raise TypeError("Target cost must be a float")
+            if (target_cost <= 0 or target_cost >= 1):
+                raise ValueError("Target cost must be a float value between 0 and 1")
         
         results = dict() 
         
