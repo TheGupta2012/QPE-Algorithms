@@ -10,8 +10,9 @@ import sys
 from scipy.stats import unitary_group 
 import matplotlib.pyplot as plt 
 
+
 class SPEA():
-    def __init__(self,unitary,resolution = 100, error = 3, max_iters = 20):
+    def __init__(self,unitary,resolution = 50, error = 3, max_iters = 20):
         # handle resolution 
         if not isinstance(resolution,int):
             raise TypeError("Please enter the number of intervals as an integer value")  
@@ -70,8 +71,7 @@ class SPEA():
         for k in UR:
             basis.append(np.array(k,dtype = complex))
         return basis 
-    def get_cost(self,angles,state,backend):
-
+    def get_standard_cost(self,angles,state,backend):
         '''Given an initial state and a set of angles,
           return the best cost and the associated angle
           state is a normalized state in ndarray form'''
@@ -80,7 +80,7 @@ class SPEA():
         phi = Initialize(state)
         shots = 512
         circuits = []
-
+        
         for theta in angles:
             qc = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
             # initialize the circuit 
@@ -97,7 +97,7 @@ class SPEA():
             qc.measure([0],[0])
             #generate all the circuits...
             circuits.append(qc)
-
+                
         #execute only once...
         counts = execute(circuits,backend = backend,shots = shots).result().get_counts()
         # get the cost for this theta 
@@ -112,16 +112,98 @@ class SPEA():
                 # means this is a better theta value  
                 result['theta'] = theta 
                 result['cost'] = C_val 
-
         return result 
+    def get_alternate_cost(self,angles,state,backend):
+        '''Given an initial state and a set of angles,
+          return the best cost and the associated angle
+          state is a normalized state in ndarray form'''
+        result = {'cost' : -1, 'theta' : -1}
+        # all theta values are iterated over for the same state
+        phi = Initialize(state)
+        shots = 512
+        
+        # run the circuit once
+        qc = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
+        # initialize the circuit 
+        qc = qc.compose(phi, qubits = list(range(1,int(np.log2(self.dims))+1)))
+        # add hadamard
+        qc.h(0)
+        # add unitary which produces a phase kickback on control qubit
+        qc = qc.compose(self.c_unitary_gate,qubits = range(1+int(np.log2(self.dims))))
+        # add hadamard 
+        qc.h(0)
+        # measure 
+        qc.measure([0],[0])
+        
+                
+        #execute only once...
+        counts = execute(qc,backend = backend,shots = shots).result().get_counts()
+        
+        #generate experimental probabilities
+        try:
+            p0 = counts['0']/shots 
+        except:
+            p0 = 0 
+        try:
+            p1 = counts['1']/shots
+        except:
+            p1 = 0
+        
+        # now, find the best theta as specified by the 
+        # alternate method classically
+        min_s = 1e5 
+        for theta in angles:
+            # generate theoretical probabilities
+            c0 = (np.cos(np.pi*theta))**2 
+            c1 = (np.sin(np.pi*theta))**2 
+            
+            #generate s value 
+            s = (p0-c0)**2 + (p1-c1)**2 
+            if s < min_s:
+                result['theta'] = theta 
+                min_s = s 
+                
+                
+        # now , we have the best theta stored in phi 
+        # run circuit once again to get the value of C* 
+        phi = Initialize(state) 
+        # run the circuit once again
+        qc = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
+        # initialize the circuit 
+        qc = qc.compose(phi, qubits = list(range(1,int(np.log2(self.dims))+1)))
+        # add hadamard
+        qc.h(0)
+        # add unitary which produces a phase kickback on control qubit
+        qc = qc.compose(self.c_unitary_gate,qubits = range(1+int(np.log2(self.dims))))
+        # add inv rotation 
+        qc.p(-2*np.pi*(result['theta']),0)
+        # add hadamard 
+        qc.h(0)
+        # measure 
+        qc.measure([0],[0])
+        
+        counts = execute(qc,backend = backend,shots = shots).result().get_counts()
+        try:
+            result['cost'] = counts['0']/shots 
+        except: 
+            result['cost'] = 0 
+        # no 0 counts present
+        
+        # return the result
+        return result 
+    
 
     
-    def get_eigen_pair(self,backend,progress = False,randomize = True, target_cost = None):
+    def get_eigen_pair(self,backend,algo = 'alternate',progress = False,randomize = True, target_cost = None):
         '''Finding the eigenstate pair for the unitary'''
-        
+         #handle algorithm...
+        if not isinstance(algo,str):
+            raise TypeError("Algorithm must be mentioned as a string from the values {alternate,standard}")
+        elif algo not in ['alternate','standard']:
+            raise ValueError("Algorithm must be specified as 'alternate' or 'standard' ")
+    
         if not isinstance(progress,bool):
             raise TypeError("Progress must be a boolean variable")
-        
         if not isinstance(randomize,bool):
             raise Exception("Randomize must be a boolean variable")
         
@@ -154,8 +236,10 @@ class SPEA():
         angles = np.linspace(left,right,samples)
 
         # iterate once 
-        result = self.get_cost(angles,phi,backend)
-        
+        if algo == 'alternate':
+            result = self.get_alternate_cost(angles,phi,backend)
+        else:
+            result = self.get_standard_cost(angles,phi,backend)
         # get initial estimates 
         cost = result['cost']
         theta_max = result['theta']
@@ -198,7 +282,10 @@ class SPEA():
                 curr_phi = curr_phi / np.linalg.norm(curr_phi)
                 
                 # iterate (angles would be same until theta is changed)
-                res = self.get_cost(angles,curr_phi,backend)
+                if algo == 'alternate':
+                    res = self.get_alternate_cost(angles,curr_phi,backend)
+                else:
+                    res = self.get_standard_cost(angles,curr_phi,backend)
                 curr_cost = res['cost']
                 curr_theta = res['theta']
                 
