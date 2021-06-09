@@ -198,13 +198,19 @@ class global_max_SPEA():
         return result 
     
     
-    def get_eigen_pair(self,backend,algo = 'alternate',progress = False,randomize = True,):
+    def get_eigen_pair(self,backend,algo = 'alternate',progress = False,randomize = True, target_cost = None):
         '''Finding the eigenstate pair for the unitary'''
         #handle algorithm...
         if not isinstance(algo,str):
             raise TypeError("Algorithm must be mentioned as a string from the values {alternate,standard}")
         elif algo not in ['alternate','standard']:
             raise ValueError("Algorithm must be specified as 'alternate' or 'standard' ")
+        
+        if target_cost is not None:
+            if not isinstance(target_cost,float):
+                raise TypeError("Target cost must be a float")
+            if (target_cost <= 0 or target_cost >= 1):
+                raise ValueError("Target cost must be a float value between 0 and 1")
         
         # handle progress...
         if not isinstance(progress,bool):
@@ -223,7 +229,11 @@ class global_max_SPEA():
         
         # doing the method 1 of our algorithm 
         # define resolution of angles and precision 
-        precision = 1/10**self.error 
+        if target_cost == None:
+            precision = 1/10**self.error 
+        else:
+            precision = 1 - target_cost 
+            
         samples = self.resolution 
         
         # initialization of range 
