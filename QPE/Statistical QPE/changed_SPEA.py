@@ -249,8 +249,6 @@ class global_max_SPEA():
         # start algorithm        
         iters = 0 
         found = True
-        plus = (1/np.sqrt(2))*np.array([1,1])
-        minus = (1/np.sqrt(2))*np.array([1,-1])
         
         while 1 - cost >= precision:
             # get angles, note if theta didn't change, then we need to 
