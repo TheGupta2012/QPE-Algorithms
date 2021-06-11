@@ -194,7 +194,7 @@ class SPEA():
     
 
     
-    def get_eigen_pair(self,backend,algo = 'alternate',progress = False,randomize = True, target_cost = None):
+    def get_eigen_pair(self,backend,algo = 'alternate',progress = False,basis = None, basis_ind = None, randomize = True, target_cost = None):
         '''Finding the eigenstate pair for the unitary'''
          #handle algorithm...
         if not isinstance(algo,str):
@@ -216,9 +216,17 @@ class SPEA():
         results = dict() 
         
         # first initialize the state phi 
-        self.basis = self.get_basis_vectors(randomize)
-        
-        ind = np.random.choice(self.dims) 
+        if basis is None:
+            self.basis = self.get_basis_vectors(randomize)
+        else:
+            self.basis = basis 
+            
+        # choose a random index
+        if basis_ind is None:
+            ind = np.random.choice(self.dims) 
+        else:
+            ind = basis_ind
+            
         phi = self.basis[ind]
         
         # doing the method 1 of our algorithm 

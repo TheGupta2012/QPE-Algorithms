@@ -198,7 +198,7 @@ class global_max_SPEA():
         return result 
     
     
-    def get_eigen_pair(self,backend,algo = 'alternate',progress = False,randomize = True, target_cost = None):
+    def get_eigen_pair(self,backend,algo = 'alternate',progress = False,basis = None,basis_ind = None, randomize = True, target_cost = None):
         '''Finding the eigenstate pair for the unitary'''
         #handle algorithm...
         if not isinstance(algo,str):
@@ -221,12 +221,21 @@ class global_max_SPEA():
         results = dict() 
         
         # first initialize the state phi 
-        self.basis = self.get_basis_vectors(randomize)
-        
+        if basis is None:
+            self.basis = self.get_basis_vectors(randomize)
+        else:
+            # is basis is specified, given as array of vectors...
+            self.basis = basis 
+            
         # choose a random index 
-        ind = np.random.choice(self.dims) 
+        if basis_ind is None:
+            ind = np.random.choice(self.dims) 
+        else:
+            # choose the index given in that basis
+            ind = basis_ind
+            
         phi = self.basis[ind]
-        
+        print("PHI :",phi)
         # doing the method 1 of our algorithm 
         # define resolution of angles and precision 
         if target_cost == None:
