@@ -2,6 +2,7 @@ from qiskit import QuantumCircuit, execute, transpile, Aer
 from qiskit.extensions import UnitaryGate,Initialize
 from qiskit.quantum_info import Statevector 
 from qiskit.tools.monitor import job_monitor 
+from qiskit.compiler import assemble 
 from qiskit.tools.visualization import plot_bloch_vector
 from qiskit.tools.visualization import plot_histogram,plot_bloch_multivector  
 import numpy as np 
@@ -74,14 +75,13 @@ class global_max_SPEA():
             basis.append(np.array(k,dtype = complex))
         return basis 
     
-    def get_standard_cost(self,angles,state,backend):
+    def get_standard_cost(self,angles,state,backend,shots):
         '''Given an initial state and a set of angles,
           return the best cost and the associated angle
           state is a normalized state in ndarray form'''
         result = {'cost' : -1, 'theta' : -1}
         # all theta values are iterated over for the same state
         phi = Initialize(state)
-        shots = 512
         circuits = []
         
         for theta in angles:
@@ -118,14 +118,13 @@ class global_max_SPEA():
         return result 
         
     
-    def get_alternate_cost(self,angles,state,backend):
+    def get_alternate_cost(self,angles,state,backend,shots):
         '''Given an initial state and a set of angles,
           return the best cost and the associated angle
           state is a normalized state in ndarray form'''
         result = {'cost' : -1, 'theta' : -1}
         # all theta values are iterated over for the same state
         phi = Initialize(state)
-        shots = 512
         
         # run the circuit once
         qc = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
@@ -198,7 +197,7 @@ class global_max_SPEA():
         return result 
     
     
-    def get_eigen_pair(self,backend,algo = 'alternate',progress = False,basis = None,basis_ind = None, randomize = True, target_cost = None):
+    def get_eigen_pair(self,backend,algo = 'alternate',progress = False,basis = None,basis_ind = None, randomize = True, target_cost = None,shots = 512):
         '''Finding the eigenstate pair for the unitary'''
         #handle algorithm...
         if not isinstance(algo,str):
@@ -235,7 +234,6 @@ class global_max_SPEA():
             ind = basis_ind
             
         phi = self.basis[ind]
-        print("PHI :",phi)
         # doing the method 1 of our algorithm 
         # define resolution of angles and precision 
         if target_cost == None:
@@ -253,9 +251,9 @@ class global_max_SPEA():
 
         # iterate once 
         if algo == 'alternate':
-            result = self.get_alternate_cost(angles,phi,backend)
+            result = self.get_alternate_cost(angles,phi,backend,shots)
         else:
-            result = self.get_standard_cost(angles,phi,backend)
+            result = self.get_standard_cost(angles,phi,backend,shots)
         # get initial estimates 
         cost = result['cost']
         theta_max = result['theta']
@@ -268,8 +266,6 @@ class global_max_SPEA():
         # start algorithm        
         iters = 0 
         found = True
-        plus = (1/np.sqrt(2))*np.array([1,1])
-        minus = (1/np.sqrt(2))*np.array([1,-1])
         
         while 1 - cost >= precision:
             # get angles, note if theta didn't change, then we need to 
@@ -305,9 +301,9 @@ class global_max_SPEA():
                 
                 # iterate (angles would be same until theta is changed)
                 if algo == 'alternate':
-                    res = self.get_alternate_cost(angles,curr_phi,backend)
+                    res = self.get_alternate_cost(angles,curr_phi,backend,shots)
                 else:
-                    res = self.get_standard_cost(angles,curr_phi,backend)
+                    res = self.get_standard_cost(angles,curr_phi,backend,shots)
                 curr_cost = res['cost']
                 curr_theta = res['theta']
                 

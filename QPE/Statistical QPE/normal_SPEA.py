@@ -71,14 +71,14 @@ class SPEA():
         for k in UR:
             basis.append(np.array(k,dtype = complex))
         return basis 
-    def get_standard_cost(self,angles,state,backend):
+    
+    def get_standard_cost(self,angles,state,backend,shots):
         '''Given an initial state and a set of angles,
           return the best cost and the associated angle
           state is a normalized state in ndarray form'''
         result = {'cost' : -1, 'theta' : -1}
         # all theta values are iterated over for the same state
         phi = Initialize(state)
-        shots = 512
         circuits = []
         
         for theta in angles:
@@ -113,14 +113,13 @@ class SPEA():
                 result['theta'] = theta 
                 result['cost'] = C_val 
         return result 
-    def get_alternate_cost(self,angles,state,backend):
+    def get_alternate_cost(self,angles,state,backend,shots):
         '''Given an initial state and a set of angles,
           return the best cost and the associated angle
           state is a normalized state in ndarray form'''
         result = {'cost' : -1, 'theta' : -1}
         # all theta values are iterated over for the same state
         phi = Initialize(state)
-        shots = 512
         
         # run the circuit once
         qc = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
@@ -192,9 +191,8 @@ class SPEA():
         # return the result
         return result 
     
-
     
-    def get_eigen_pair(self,backend,algo = 'alternate',progress = False,randomize = True, target_cost = None):
+    def get_eigen_pair(self,backend,algo = 'alternate',progress = False,basis = None, basis_ind = None, randomize = True, target_cost = None, shots = 512):
         '''Finding the eigenstate pair for the unitary'''
          #handle algorithm...
         if not isinstance(algo,str):
@@ -216,9 +214,17 @@ class SPEA():
         results = dict() 
         
         # first initialize the state phi 
-        self.basis = self.get_basis_vectors(randomize)
-        
-        ind = np.random.choice(self.dims) 
+        if basis is None:
+            self.basis = self.get_basis_vectors(randomize)
+        else:
+            self.basis = basis 
+            
+        # choose a random index
+        if basis_ind is None:
+            ind = np.random.choice(self.dims) 
+        else:
+            ind = basis_ind
+            
         phi = self.basis[ind]
         
         # doing the method 1 of our algorithm 
@@ -237,9 +243,9 @@ class SPEA():
 
         # iterate once 
         if algo == 'alternate':
-            result = self.get_alternate_cost(angles,phi,backend)
+            result = self.get_alternate_cost(angles,phi,backend,shots)
         else:
-            result = self.get_standard_cost(angles,phi,backend)
+            result = self.get_standard_cost(angles,phi,backend,shots)
         # get initial estimates 
         cost = result['cost']
         theta_max = result['theta']
@@ -252,8 +258,7 @@ class SPEA():
         iters = 0 
         best_phi = phi 
         found = True
-        plus = (1/np.sqrt(2))*np.array([[1,1]])
-        minus = (1/np.sqrt(2))*np.array([[1,-1]])
+
         while 1 - cost >= precision:
             # get angles, note if theta didn't change, then we need to 
             # again generate the same range again 
@@ -283,15 +288,14 @@ class SPEA():
                 
                 # iterate (angles would be same until theta is changed)
                 if algo == 'alternate':
-                    res = self.get_alternate_cost(angles,curr_phi,backend)
+                    res = self.get_alternate_cost(angles,curr_phi,backend,shots)
                 else:
-                    res = self.get_standard_cost(angles,curr_phi,backend)
+                    res = self.get_standard_cost(angles,curr_phi,backend,shots)
                 curr_cost = res['cost']
                 curr_theta = res['theta']
                 
                 # at this point I have the best Cost for the state PHI and the 
-#   
-                # print(curr_phi)
+
                
                 if curr_cost > cost:
                     theta_max = float(curr_theta) 
