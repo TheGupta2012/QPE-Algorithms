@@ -2,6 +2,7 @@ from qiskit import QuantumCircuit, execute, transpile, Aer
 from qiskit.extensions import UnitaryGate,Initialize
 from qiskit.quantum_info import Statevector 
 from qiskit.tools.monitor import job_monitor 
+from qiskit.compiler import assemble 
 from qiskit.tools.visualization import plot_bloch_vector
 from qiskit.tools.visualization import plot_histogram,plot_bloch_multivector  
 import numpy as np 
@@ -74,34 +75,69 @@ class global_max_SPEA():
             basis.append(np.array(k,dtype = complex))
         return basis 
     
+    def get_unitary_circuit(self, backend):
+        '''Return the pretranspiled circuit '''
+        if backend is None:
+            backend = Aer.get_backend('qasm_simulator')
+        
+        qc = QuantumCircuit(1 + int(np.log2(self.dims)))
+
+        # make the circuit
+        qc.h(0)
+        qc = qc.compose(self.c_unitary_gate, qubits=range(
+            1+int(np.log2(self.dims))))
+        
+        qc.barrier()
+        qc = transpile(qc,backend=backend,optimization_level = 3)
+        
+        return qc
+    
+    def get_circuit(self, state, backend, angle=None):
+        '''Given an initial state ,
+          return the circuit that is generated with 
+          inverse rotation '''
+        # all theta values are iterated over for the same state
+        phi = Initialize(state)
+
+        qc1 = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
+        # initialize the circuit
+        qc1 = qc1.compose(phi, qubits=list(
+            range(1, int(np.log2(self.dims))+1)))
+        qc1 = transpile(qc1, backend=backend,optimization_level=1)
+
+        # get the circuit2
+        qc2 = self.unitary_circuit
+
+        qc3 = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
+        if angle is not None:
+            # add inverse rotation on the first qubit
+            qc3.p(-2*np.pi*angle, 0)
+        # add hadamard
+        qc3.h(0)
+        qc3 = transpile(qc3, backend=backend,optimization_level=1)
+
+        # make final circuit
+        qc = qc1 + qc2 + qc3
+
+        # measure
+        qc.measure([0], [0])
+        return qc
+    
     def get_standard_cost(self,angles,state,backend,shots):
         '''Given an initial state and a set of angles,
           return the best cost and the associated angle
           state is a normalized state in ndarray form'''
         result = {'cost' : -1, 'theta' : -1}
         # all theta values are iterated over for the same state
-        phi = Initialize(state)
         circuits = []
         
         for theta in angles:
-            qc = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
-            # initialize the circuit 
-            qc = qc.compose(phi, qubits = list(range(1,int(np.log2(self.dims))+1)))
-            # add hadamard
-            qc.h(0)
-            # add unitary which produces a phase kickback on control qubit
-            qc = qc.compose(self.c_unitary_gate,qubits = range(1+int(np.log2(self.dims))))
-            # add the inv rotation 
-            qc.p(-2*np.pi*theta,0)
-            # add hadamard 
-            qc.h(0)
-            # measure 
-            qc.measure([0],[0])
-            #generate all the circuits...
+            qc = self.get_circuit(state,backend,theta)
             circuits.append(qc)
                 
+        circuits = assemble(circuits)
         #execute only once...
-        counts = execute(circuits,backend = backend,shots = shots).result().get_counts()
+        counts = backend.run(circuits, shots=shots).result().get_counts()
         # get the cost for this theta 
         for k,theta in zip(counts,angles):
             # for all experiments you ran 
@@ -116,31 +152,18 @@ class global_max_SPEA():
                 result['cost'] = C_val 
         return result 
         
-    
     def get_alternate_cost(self,angles,state,backend,shots):
         '''Given an initial state and a set of angles,
           return the best cost and the associated angle
           state is a normalized state in ndarray form'''
         result = {'cost' : -1, 'theta' : -1}
         # all theta values are iterated over for the same state
-        phi = Initialize(state)
-        
         # run the circuit once
-        qc = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
-        # initialize the circuit 
-        qc = qc.compose(phi, qubits = list(range(1,int(np.log2(self.dims))+1)))
-        # add hadamard
-        qc.h(0)
-        # add unitary which produces a phase kickback on control qubit
-        qc = qc.compose(self.c_unitary_gate,qubits = range(1+int(np.log2(self.dims))))
-        # add hadamard 
-        qc.h(0)
-        # measure 
-        qc.measure([0],[0])
+        qc = self.get_circuit(state,backend)
+        qc = assemble(qc)
         
-                
         #execute only once...
-        counts = execute(qc,backend = backend,shots = shots).result().get_counts()
+        counts = backend.run(qc,shots = shots).result().get_counts()
         
         #generate experimental probabilities
         try:
@@ -169,23 +192,10 @@ class global_max_SPEA():
                 
         # now , we have the best theta stored in phi 
         # run circuit once again to get the value of C* 
-        phi = Initialize(state) 
-        # run the circuit once again
-        qc = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
-        # initialize the circuit 
-        qc = qc.compose(phi, qubits = list(range(1,int(np.log2(self.dims))+1)))
-        # add hadamard
-        qc.h(0)
-        # add unitary which produces a phase kickback on control qubit
-        qc = qc.compose(self.c_unitary_gate,qubits = range(1+int(np.log2(self.dims))))
-        # add inv rotation 
-        qc.p(-2*np.pi*(result['theta']),0)
-        # add hadamard 
-        qc.h(0)
-        # measure 
-        qc.measure([0],[0])
+        qc = self.get_circuit(state, backend, result['theta'])
+        qc = assemble(qc)
+        counts = backend.run(qc, shots=shots).result().get_counts()
         
-        counts = execute(qc,backend = backend,shots = shots).result().get_counts()
         try:
             result['cost'] = counts['0']/shots 
         except: 
@@ -199,6 +209,9 @@ class global_max_SPEA():
     def get_eigen_pair(self,backend,algo = 'alternate',progress = False,basis = None,basis_ind = None, randomize = True, target_cost = None,shots = 512):
         '''Finding the eigenstate pair for the unitary'''
         #handle algorithm...
+        
+        self.unitary_circuit = self.get_unitary_circuit(backend)
+        
         if not isinstance(algo,str):
             raise TypeError("Algorithm must be mentioned as a string from the values {alternate,standard}")
         elif algo not in ['alternate','standard']:

@@ -4,6 +4,7 @@ from qiskit.quantum_info import Statevector
 from qiskit.tools.visualization import plot_bloch_vector
 from qiskit.tools.visualization import plot_histogram,plot_bloch_multivector  
 import numpy as np 
+from qiskit.providers.ibmq.managed import IBMQJobManager
 from time import sleep 
 import sys 
 from scipy.stats import unitary_group 

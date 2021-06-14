@@ -103,7 +103,6 @@ class SPEA():
           inverse rotation '''
         # all theta values are iterated over for the same state
         phi = Initialize(state)
-        shots = 512
 
         qc1 = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
         # initialize the circuit
@@ -135,7 +134,6 @@ class SPEA():
           state is a normalized state in ndarray form'''
         result = {'cost': -1, 'theta': -1}
         # all theta values are iterated over for the same state
-        phi = Initialize(state)
         circuits = []
 
         for theta in angles:
@@ -165,7 +163,6 @@ class SPEA():
           state is a normalized state in ndarray form'''
         result = {'cost': -1, 'theta': -1}
         # all theta values are iterated over for the same state
-        phi = Initialize(state)
 
         qc = self.get_circuit(state,backend)
         qc = assemble(qc)
@@ -188,7 +185,7 @@ class SPEA():
         for theta in angles:
             # generate theoretical probabilities
             c0 = (np.cos(np.pi*theta))**2
-            c1 = (np.sin(np.pi*theta))**2
+            c1 = 1 - c0
 
             # generate s value
             s = (p0-c0)**2 + (p1-c1)**2
@@ -275,8 +272,9 @@ class SPEA():
         else:
             result = self.get_standard_cost(angles, phi, backend,shots)
         # get initial estimates
-        cost = result['cost']
+        cost = min(1,result['cost'])
         theta_max = result['theta']
+        best_phi = phi
 
         # the range upto which theta extends iin each iteration
         angle_range = 0.5
@@ -284,7 +282,6 @@ class SPEA():
         a = 1
         # start algorithm
         iters = 0
-        best_phi = phi
         found = True
         
         while 1 - cost >= precision:
@@ -324,11 +321,11 @@ class SPEA():
 
                 # at this point I have the best Cost for the state PHI and the
 #
-                # print(curr_phi)
+            
 
                 if curr_cost > cost:
                     theta_max = float(curr_theta)
-                    cost = float(curr_cost)
+                    cost = min(1.0,float(curr_cost))
                     best_phi = curr_phi
                     found = True
                 if progress:

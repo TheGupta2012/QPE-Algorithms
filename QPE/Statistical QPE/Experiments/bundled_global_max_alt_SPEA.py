@@ -5,6 +5,7 @@ from qiskit.compiler import assemble
 from qiskit.tools.visualization import plot_bloch_vector
 from qiskit.tools.visualization import plot_histogram, plot_bloch_multivector
 import numpy as np
+from qiskit.providers.ibmq.managed import IBMQJobManager
 from time import sleep
 import sys
 from scipy.stats import unitary_group
@@ -154,7 +155,7 @@ class bundled_SPEA_alternate():
         if progress:
             print("Transpiling circuits...")
         # assemble
-        circuits = assemble(circuits=circuits)
+        circuits = assemble(circuits)
         
         # get the job runner instance
         job_set = manager.run(circuits, backend=backend,
