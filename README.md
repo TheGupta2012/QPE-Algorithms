@@ -24,8 +24,8 @@ All algorithms have been implemented as python classes and have support for runn
 - Main folder : `Basic QPE`
 
 <hspace><hspace>
-<img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Basic%20QPE/QPE_circ.JPG" align = "left" height = 230 width = 370 title = "Basic QPE" hspace ='20'>
-<img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Basic%20QPE/QPE_circ_optimized.JPG" align = "left" height = 230 width = 380 title = "Optimized QPE">
+<img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Basic%20QPE/QPE_circ.JPG" align = "left" height = 230 width = 370 title = "Basic QPE">
+<img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Basic%20QPE/QPE_circ_optimized.JPG" align = "right" height = 230 width = 380 title = "Optimized QPE">
 <br><br><br><br><br><br><br><br><br><br>
 
   
