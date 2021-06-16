@@ -195,13 +195,13 @@ class fast_QPE():
         
         return controls 
     
-    def get_QPE(self,show = False):
+    def get_QPE(self,show = False,save = False):
         '''Returns the final QPE circuit to the user in form of a 
         QuantumCircuit 
         
         Arguments :
             show(bool) : Whether to draw the circuit or not 
-            
+            save(bool) : Whether to draw the circuit or not 
         Returns : 
             QuantumCircuit : The QuantumCircuit which can be attached to the user circuit
           
@@ -283,7 +283,7 @@ class fast_QPE():
             
         # attach IQFT 
         IQFT = self.get_QFT(n_qubits,show= show,swaps = False).inverse()
-        IQFT.name = "IQFT"
+        IQFT.name = "IQFT_circuit"
         
         ## add swap gates 
         i,j = 0, n_qubits-1 
@@ -297,7 +297,10 @@ class fast_QPE():
         
         # that's it 
         if(show == True):
-            display(qc.draw('mpl'))
+            if save == True:
+                display(qc.draw('mpl',filename = "QPE_circ_optimized.JPG",scale = 0.8))
+            else:
+                display(qc.draw('mpl'))
         return qc 
             
         

@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from qiskit.tools.monitor import job_monitor 
 from qiskit.extensions import UnitaryGate
-import os
+from qiskit.circuit import Gate 
 
 class IQPE():
     '''Implements the iterative QPE algorithm upto n bit precision specified by user 
@@ -87,10 +87,9 @@ class IQPE():
                 U = unitary 
             # here we can directly use the .control method in our circuit.
             
-        if isinstance(U,np.ndarray) and U.shape != (2,2):
-            raise Exception("Unitary needs to be a 2 x 2 matrix or a single qubit gate") 
-        
-        # the unitary is always an ndarray from here onwards
+            
+        # the unitary is an ndarray if unknown is False and 
+        # the unitary is not ndarray is unknown is true 
         self.unitary = U
         self.unknown = unknown
         self.powers = {}
@@ -121,6 +120,7 @@ class IQPE():
         if n % 2 == 1:
             if n-1 not in self.powers:
                 self.powers[n-1] = self.get_powers(unitary, n-1)
+                
             self.powers[n] = unitary @ self.powers[n-1]
             return self.powers[n]
         else:
@@ -161,24 +161,29 @@ class IQPE():
 
         return controls
 
-    def get_circuit_phase(self, QC, clbits, qubit, ancilla, show=False,backend = None):
+    def get_circuit_phase(self, QC, clbits, qubits, ancilla, show=False,backend = None,
+                          save_circ = False, circ_name = "IQPE_circ.JPG"):
         # QC must be atleast size 2
+        '''Add the experiments pararmeters .., and the shots parameter '''
+        
         '''
         Returns the circuit phase as a 2-tuple phase : (binary phase,decimal phase)
         Arguments: 
             QC(QuantumCircuit) : the circuit containing the eigenvector of the unitary matrix 
             clbits(list-like) : the list of the classical bits in which the phase would be saved 
-            qubit(int) : the index of the qubit containing the eigenvector of unitary
+            qubits(list-like) : the indices of the qubits containing the eigenvector of unitary
             ancilla(int) : the ancilliary qubit which would be used as the control qubit   
             show(bool) : boolean to specify if circuit should be drawn or not 
+            save(bool) : boolean to specify if circuit should be saved or not 
+                    (saved as IQPE_circuit.JPG, if true) 
             backend(IBMQBackend) : backend for running the circuit 
                     NOTE : IBMQ provider must be enabled for execution of circuits on real backends
 
             
         Raises: 
             ValueError : if clbits are not equal to precision or non-unique bits specified 
-                         or if elements of clbits are not integer type or ancilla qubit is 
-                         same as the eigenvector qubit  
+                         or if elements of clbits/qubits are not integer type or ancilla qubit is 
+                         same as one of the eigenvector qubits
             TypeError : if qubit indices are not integral 
             Exception : if unitary has less than 2 qubits  
             
@@ -204,11 +209,12 @@ class IQPE():
             qpe = get_circuit_phase(precision = 4,unitary = unitary,unknown = True)
             athens = provider.get_backend('ibmq_athens')
             phase = iqpe.get_circuit_phase(
-            QC=q, clbits=[0, 1, 2, 3], qubit=4, ancilla=3, show=True,backend = athens)
+            QC=q, clbits=[0, 1, 2, 3], qubits=[4], ancilla=3, show=True,backend = athens)
             
             # phase[0] would contain a 4-bit phase representation 
             # phase[1] would contain the decimal representation of the phase
         '''
+        
         # handle qubits in circuit
         if len(QC.qubits) < 2:
             raise Exception("Quantum Circuit needs to have atleast size 2")
@@ -221,19 +227,29 @@ class IQPE():
         elif not all(isinstance(i, int) for i in clbits):
             raise ValueError("All classical indices must be integer type")
 
+            
         # qubit and ancilla need to be integers
-        if type(qubit) is not int or type(ancilla) is not int:
-            raise TypeError("Qubit indices need to be specified as integers")
-        elif qubit == ancilla:
-            raise ValueError("Ancilla and eigen state cannot be in the same qubit")
-
+        if type(ancilla) is not int:
+            raise TypeError("Ancilla indix need to be specified as integer")
+        elif not all(isinstance(i,int) for i in qubits):
+            raise TypeError("The indices containing the eigenvector must be integer type ")
+        elif len(set(qubits)) != len(qubits):
+            raise ValueError("Non-unique qubits given for the eigenvector")
+        elif ancilla in qubits:
+            raise Exception("Ancilla can not be equal to a qubit index ")
+            
         res = []
         # start with the iteration
         phase = -2*np.pi
         factor = 0
         iterations = self.precision
+        # generate the qubit list on which the Unitary is applied
+        qargs = [ancilla]
+        for q in qubits:
+            qargs.append(q) 
+        
         if self.unknown == True:
-            # no matrix repr is available
+            # no matrix repr is available -> means .control method can be applied easily
             exponent = 2**(iterations - 1)
             CU = self.unitary.control(num_ctrl_qubits = 1,label = 'CU',ctrl_state=1)
         
@@ -248,11 +264,11 @@ class IQPE():
 
             # add the controlled Unitary of iteration it 
             if self.unknown == False:
-                QC = QC.compose(self.controls[it], qubits=[ancilla, qubit])
+                QC = QC.compose(self.controls[it], qubits=qargs)
             else:
                 # need to add exponential amount of matrices 
                 for _ in range(int(exponent)):
-                    QC = QC.compose(CU,qubits = [ancilla,qubit])
+                    QC = QC.compose(CU,qubits = qargs)
                 exponent /= 2 
                 
             # add H gate
@@ -262,11 +278,11 @@ class IQPE():
             # or, iterate in reverse manner , no of steps ->
             # clbits[it] as it is the absolute
             # classical register index
-            
             if backend == None: # simulating 
                 counts = execute(QC, backend=Aer.get_backend('qasm_simulator'), shots=1).result().get_counts()
             else:
-                job = execute(QC,shots = 1,backend = backend,job_name = "Iter "+str(it+1))
+                job = execute(QC,shots = 1,backend = backend,job_name = "Iter "+str(it+1),
+                             optimization_level = 3)
                 display(job_monitor(job))
                 counts = job.result().get_counts()
                     
@@ -282,7 +298,10 @@ class IQPE():
             factor = factor/2  # shift each towards one weight right
             if it+1 == iterations:
                 if show == True:
-                    display(QC.draw('mpl'))
+                    if save_circ == False:
+                        display(QC.draw('mpl'))
+                    else:
+                        display(QC.draw(output='mpl',filename = circ_name,scale = 0.8))
 
         # phase has now been stored in the clbits
         # returning its binary representation
@@ -290,7 +309,6 @@ class IQPE():
         # need to reverse as LSB is stored at the zeroth index and
         # not the last
         res = res[::-1]
-        
         
         #find decimal phase 
         dec = 0
@@ -300,12 +318,11 @@ class IQPE():
             weight /= 2
             
         return (res,dec)
-   
-def get_estimate_plot(theta = None,unitary = None,unknown = True, experiments = 1,iters=9, show_circ=False, save=False,
-                      backend = None):
+    
+def get_estimate_plot_phase(theta = None,unitary = None,unknown = True, experiments = 1,iters=9, show_circ=False, save=False, backend = None):
     '''
     Displays an estimate plot of the phase that is found through the IQPE 
-    algorithm.
+    algorithm for single qubit phase unitaries
     
     theta(float) : contains the actual theta (if some theoretical assumption is known)
     unitary(ndarray / QuantumCircuit / UnitaryGate) :
@@ -358,7 +375,7 @@ def get_estimate_plot(theta = None,unitary = None,unknown = True, experiments = 
             q.x(1)
             # simulate the matrix on a circuit 
             phase = iqpe.get_circuit_phase(
-                QC=q, clbits=[i for i in range(prec)], qubit=1, ancilla=0, show=show_circ,
+                QC=q, clbits=[i for i in range(prec)], qubits=[1], ancilla=0, show=show_circ,
                 backend = backend)
             # add the phase and the error ...
             dec_phase.append(phase[1])
@@ -390,6 +407,7 @@ def get_estimate_plot(theta = None,unitary = None,unknown = True, experiments = 
         c2 = np.random.choice(colors)[0]
     plt.figure(figsize=(9, 7))
     plt.grid(True)
+    
     # plot 
     plt.plot([i for i in range(2, iters)], estimates, alpha=0.6, marker='o',
              color=c1, label='Estimates', linestyle='dashed', linewidth=2)
