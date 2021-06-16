@@ -1,5 +1,5 @@
 ## QPE-Library :atom:
-This is a library consisting some `basic` and `novel` Quantum Phase Estimation algorithms. The four primary algorithms implemented are- 
+This is a library containing some `basic` and `novel` Quantum Phase Estimation algorithms. The four primary algorithms implemented are- 
   - Basic Quantum Phase Estimation algorithm
   - Iterative Quantum Phase Estimation algorithm
   - Kitaev's Phase Estimation algorithm
@@ -53,7 +53,7 @@ All algorithms have been implemented as python classes and have support for runn
 **Statistical Phase Estimation Algorithm** 🆕
 - All the above algorithms suffer from a limitation that each one of them requires **the eigenvector** of the unitary matrix for the phase estimation procesdure.
 - Statistical Phase Estimation Algorithm or SPEA is a novel approach for phase etimation based on [this](https://arxiv.org/pdf/2104.10285.pdf) recent paper. SPEA uses a variational approach to solve the phase estimation and *does not* require the eigenvector of the unitary matrix to be prepared beforehand.
-- This library contains the original algorithm proposed by the authors and **a modified approach** which aims to speed up the current quantum execution time *exponentially*
+- This library contains the original algorithm proposed by the authors and **a modified approach** which aims to speed up the current "quantum execution" time *exponentially*
   
   // to do...
 
