@@ -37,7 +37,7 @@ All algorithms have been implemented as python classes and have support for runn
 - Module Path : `modules/iterative_qpe.py` 
 - Main folder : `Iterative QPE` 
 
-<img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Iterative%20QPE/IQPE_circ.JPG" height = 260 width = 620 title = "Kitaev's Circuit">
+<img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Iterative%20QPE/IQPE_circ.JPG" height = 260 width = 620 title = "IQPE Circuit">
 
 
 
