@@ -96,10 +96,10 @@ class bundled_SPEA_alternate():
         qc.barrier()
 
         qc = transpile(qc, backend=backend, optimization_level=3)
-
+        display(qc.draw('mpl'))
         return qc
 
-    def get_circuit(self, state, backend, angle=None):
+    def get_circuit(self, state, backend, shots, angle=None):
         '''Given an initial state ,
           return the circuit that is generated with 
           inverse rotation as 0.'''
@@ -126,7 +126,7 @@ class bundled_SPEA_alternate():
 
         # make final circuit
         qc = qc1 + qc2 + qc3
-
+#         qc = assemble(qc,shots = shots)
         # measure
         qc.measure([0], [0])
         return qc
@@ -154,8 +154,6 @@ class bundled_SPEA_alternate():
         # first run the generated circuits
         if progress:
             print("Transpiling circuits...")
-        # assemble
-        circuits = assemble(circuits)
         
         # get the job runner instance
         job_set = manager.run(circuits, backend=backend,
@@ -211,7 +209,7 @@ class bundled_SPEA_alternate():
         angles = np.linspace(left, right, samples)
 
         # First execution can be done without JobManager also...
-        circ = self.get_circuit(phi, backend=backend)
+        circ = self.get_circuit(phi, backend=backend,shots = shots)
         job = execute(circ, backend=backend, shots=shots)
         counts = job.result().get_counts()
 
@@ -231,7 +229,7 @@ class bundled_SPEA_alternate():
         theta_max = self.get_optimal_angle(p0, p1, angles)
 
         # get intial cost
-        circ = self.get_circuit(phi, backend=backend, angle=theta_max)
+        circ = self.get_circuit(phi, backend=backend, shots = shots, angle=theta_max)
         job = execute(circ, backend=backend, shots=shots)
         counts = job.result().get_counts()
         if '0' in counts:
@@ -287,7 +285,7 @@ class bundled_SPEA_alternate():
                 states.append(curr_phi)
 
                 # bundle the circuits together ...
-                circuits.append(self.get_circuit(curr_phi, backend=backend))
+                circuits.append(self.get_circuit(curr_phi, backend=backend,shots = shots))
 
             job_result = self.execute_job(
                 progress, iters, backend, shots, circuits)
@@ -316,7 +314,7 @@ class bundled_SPEA_alternate():
 
                 # generate the circuit and append
                 circuits.append(self.get_circuit(
-                    states[i], backend=backend, angle=theta_val))
+                    states[i], backend=backend, shots = shots, angle=theta_val))
                 thetas.append(theta_val)
 
             # again execute these circuits

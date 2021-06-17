@@ -92,7 +92,7 @@ class global_max_SPEA():
         
         return qc
     
-    def get_circuit(self, state, backend, angle=None):
+    def get_circuit(self, state, backend, shots, angle=None):
         '''Given an initial state ,
           return the circuit that is generated with 
           inverse rotation '''
@@ -103,6 +103,7 @@ class global_max_SPEA():
         # initialize the circuit
         qc1 = qc1.compose(phi, qubits=list(
             range(1, int(np.log2(self.dims))+1)))
+        qc1.barrier()
         qc1 = transpile(qc1, backend=backend,optimization_level=1)
 
         # get the circuit2
@@ -121,6 +122,8 @@ class global_max_SPEA():
 
         # measure
         qc.measure([0], [0])
+        
+#         qc = assemble(qc,shots = shots) 
         return qc
     
     def get_standard_cost(self,angles,state,backend,shots):
@@ -132,10 +135,9 @@ class global_max_SPEA():
         circuits = []
         
         for theta in angles:
-            qc = self.get_circuit(state,backend,theta)
+            qc = self.get_circuit(state,backend,shots,theta)
             circuits.append(qc)
                 
-        circuits = assemble(circuits)
         #execute only once...
         counts = backend.run(circuits, shots=shots).result().get_counts()
         # get the cost for this theta 
@@ -159,8 +161,7 @@ class global_max_SPEA():
         result = {'cost' : -1, 'theta' : -1}
         # all theta values are iterated over for the same state
         # run the circuit once
-        qc = self.get_circuit(state,backend)
-        qc = assemble(qc)
+        qc = self.get_circuit(state,backend,shots)
         
         #execute only once...
         counts = backend.run(qc,shots = shots).result().get_counts()
@@ -192,8 +193,7 @@ class global_max_SPEA():
                 
         # now , we have the best theta stored in phi 
         # run circuit once again to get the value of C* 
-        qc = self.get_circuit(state, backend, result['theta'])
-        qc = assemble(qc)
+        qc = self.get_circuit(state, backend, shots, result['theta'])
         counts = backend.run(qc, shots=shots).result().get_counts()
         
         try:

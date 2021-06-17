@@ -5,6 +5,7 @@ from qiskit.circuit import add_control
 from qiskit.tools.visualization import plot_bloch_multivector,plot_histogram
 import numpy as np 
 from qiskit_textbook.tools import array_to_latex
+
 class QPE():
     '''
     Implements the vanilla QPE algorithm utilising the Inverse Fourier Transform 
@@ -30,11 +31,12 @@ class QPE():
                              eg. precision = 4 means the phase is going to be precise 
                                  upto 2^(-4).
             unitary(np.ndarray or UnitaryGate or QuantumCircuit): 
-                            The unitary for which we want to determine the phase for arbitrary 
-                            matrices  
+                            The unitary for which we want to determine the phase. Currently 
+                            this class supports 2 x 2 matrices or single qubit gates.
+                            Shall be extended for higher order matrices. 
         Raises :
             TypeError : if precision or unitary are not of a valid type 
-            ValueError : if precision is not valid 
+            ValueError : if precision is not valid
         
         Examples :
             from basic_QPE import QPE
@@ -43,7 +45,7 @@ class QPE():
                 U1 = np.ndarray([[1,0],
                                 [0, np.exp(2*np.pi*1j*(theta))]])
                 qpe1 = QPE(precision = 4, unitary = U1)
-                
+    
                 # passing as QuantumCircuit
                 U2 = QuantumCircuit(1) 
                 U2.rz(np.pi/7,0)
@@ -61,8 +63,7 @@ class QPE():
         #handle unitary 
         if not isinstance(unitary,np.ndarray) and not isinstance(unitary,QuantumCircuit) and not isinstance(unitary,UnitaryGate):
             raise TypeError("A numpy array, Quantum Circuit or UnitaryGate needs to be passed as the unitary matrix")
-#         elif isinstance(unitary,np.ndarray) and unitary.shape != (2,2):
-#             raise Exception("Incompatible shape. The unitary must be a single qubit operator of size (2,2)")
+
         if isinstance(unitary,np.ndarray):
             self.unit_qubits = int(np.log2(unitary.shape[0]))
         else:
@@ -115,7 +116,7 @@ class QPE():
         return qc 
 
     
-    def get_QPE(self,show = False):
+    def get_QPE(self,show = False, save = False):
         '''Returns the final QPE circuit to the user in form of a 
         QuantumCircuit 
         
@@ -196,7 +197,7 @@ class QPE():
         
         # attach IQFT 
         IQFT = self.get_QFT(n_qubits,show= show,swaps = False).inverse()
-        IQFT.name = "IQFT"
+        IQFT.name = "IQFT circuit"
         
         ## add swap gates 
         i,j = 0, n_qubits-1 
@@ -210,7 +211,10 @@ class QPE():
         
         # that's it 
         if(show == True):
-            display(qc.draw('mpl'))
+            if save == True:
+                display(qc.draw(output = 'mpl', filename = 'QPE_circ.JPG',scale = 0.8))
+            else:
+                display(qc.draw(output = 'mpl'))
         return qc 
             
         

@@ -97,17 +97,21 @@ class SPEA():
         
         return qc
     
-    def get_circuit(self, state, backend, angle=None):
+    def get_circuit(self, state, backend, shots,angle=None):
         '''Given an initial state ,
-          return the circuit that is generated with 
+          return the assembled and transpiled 
+          circuit that is generated with 
           inverse rotation '''
         # all theta values are iterated over for the same state
         phi = Initialize(state)
 
         qc1 = QuantumCircuit(1 + int(np.log2(self.dims)), 1)
+        
         # initialize the circuit
         qc1 = qc1.compose(phi, qubits=list(
             range(1, int(np.log2(self.dims))+1)))
+        qc1.barrier()
+        
         qc1 = transpile(qc1, backend=backend,optimization_level=1)
 
         # get the circuit2
@@ -123,9 +127,9 @@ class SPEA():
 
         # make final circuit
         qc = qc1 + qc2 + qc3
-
         # measure
         qc.measure([0], [0])
+        
         return qc
 
     def get_standard_cost(self, angles, state, backend,shots):
@@ -137,10 +141,9 @@ class SPEA():
         circuits = []
 
         for theta in angles:
-            qc = self.get_circuit(state,backend,theta)
+            qc = self.get_circuit(state,backend,shots,theta)
             circuits.append(qc)
         
-        circuits = assemble(circuits)
         # execute only once...
         counts = backend.run(circuits, shots=shots).result().get_counts()
         # get the cost for this theta
@@ -164,11 +167,10 @@ class SPEA():
         result = {'cost': -1, 'theta': -1}
         # all theta values are iterated over for the same state
 
-        qc = self.get_circuit(state,backend)
-        qc = assemble(qc)
+        qc = self.get_circuit(state,backend,shots)
         # execute only once...
         counts = backend.run(qc, shots=shots).result().get_counts()
-
+        
         # generate experimental probabilities
         try:
             p0 = counts['0']/shots
@@ -178,7 +180,7 @@ class SPEA():
             p1 = counts['1']/shots
         except:
             p1 = 0
-
+            
         # now, find the best theta as specified by the
         # alternate method classically
         min_s = 1e5
@@ -196,15 +198,14 @@ class SPEA():
         # now , we have the best theta stored in phi
         # run circuit once again to get the value of C*
         
-        qc = self.get_circuit(state, backend, result['theta'])
-        qc = assemble(qc)
+        qc = self.get_circuit(state, backend, shots, result['theta'])
         counts = backend.run(qc, shots=shots).result().get_counts()
         
         try:
             result['cost'] = counts['0']/shots
         except:
             result['cost'] = 0
-        # no 0 counts presenta
+        # no 0 counts present
 
         # return the result
         return result
@@ -212,6 +213,7 @@ class SPEA():
     def get_eigen_pair(self, backend, algo='alternate', progress=False, randomize=True, target_cost=None
                       , basis = None, basis_ind = None,shots=512):
         '''Finding the eigenstate pair for the unitary'''
+        
         # handle algorithm...
         self.unitary_circuit = self.get_unitary_circuit(backend)
         
@@ -320,7 +322,6 @@ class SPEA():
                 curr_theta = res['theta']
 
                 # at this point I have the best Cost for the state PHI and the
-#
             
 
                 if curr_cost > cost:
@@ -333,7 +334,6 @@ class SPEA():
                     sys.stdout.write("%f %%completed" %
                                      (100*(i+1)/(2*self.dims)))
                     sys.stdout.flush()
-                    sleep(0.2)
 
             # iteration completes
 
