@@ -18,9 +18,9 @@ All algorithms have been implemented as python classes and have support for runn
 
 **Basic Phase Estimation Algorithm**
 - This basic QPE algorithm is based on the principles of phase kickback and inverse Quantum Fourier Transform.
-- This class has a distinctive feature called `unknown` which uses binary exponentiation to reduce the number of unitary applications in simulation. This feature is only utilised when `unknown` is set to `False`. 
-- Class Name : `basic_QPE`
-- Module Path : `modules/vanilla_qpe`
+- A variant called `fast_QPE` has also been included which uses binary exponentiation to reduce the number of unitary applications in simulation. Note that this is only applicable for simulation purposes but not in real scenarios. 
+- Class Names : `basic_QPE`, `fast_QPE`
+- Module Path : `modules/vanilla_qpe.py`, `modules/faster_basic_qpe.py`
 - Main folder : `Basic QPE`
 
 <hspace><hspace>
@@ -31,9 +31,10 @@ All algorithms have been implemented as python classes and have support for runn
   
 **Iterative Phase Estimation Algorithm**
 - The iterative phase estimation algorithm(IQPE) is based on the principle that reducing the width of the circuit in exchange for its depth results in smaller circuits which reduce the *interaction* between qubits thus, reducing errors. 
+- It has a distinctive feature called `unknown` which uses binary exponentiation to reduce the number of unitary applications in simulation. This feature is only utilised when `unknown` is set to `False`.
 - This algorithm proves as one of the best phase estimation routines for the present day *NISQ computers*.
 - Class Name : `general_IQPE`
-- Module Path : `modules/iterative_qpe` 
+- Module Path : `modules/iterative_qpe.py` 
 - Main folder : `Iterative QPE` 
 
 <img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Iterative%20QPE/IQPE_circ.JPG" height = 260 width = 620 title = "Kitaev's Circuit">
@@ -44,7 +45,7 @@ All algorithms have been implemented as python classes and have support for runn
 - Kitaev's algorithm for Phase Estimation is an algorithm with two forms. In this implementation, the algorithm which uses a *single Unitary matrix* for phase estimation is used.
 - Kitaev's algorithm is a very efficient algorithm in terms of quantum execution. Involving some classical post processing work and relatively simple circuits for the phase estimation, the only drawback for this algorithm is the number of shots required for a given precision and probability of error scale up very quickly.
 - Class Name : `KQPE`
-- Module Path : `modules/kitaev_qpe`
+- Module Path : `modules/kitaev_qpe.py`
 - Main Folder : `Kitaev's Algorithm`
 
 <img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Kitaev's%20Algorithm/KQPE_circ_1qubit.JPG" height = 200 width = 530 title = "Kitaev's Circuit">
