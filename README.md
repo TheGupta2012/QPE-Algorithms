@@ -54,7 +54,19 @@ All algorithms have been implemented as python classes and have support for runn
 **Statistical Phase Estimation Algorithm** 🆕
 - All the above algorithms suffer from a limitation that each one of them requires **the eigenvector** of the unitary matrix for the phase estimation procesdure.
 - Statistical Phase Estimation Algorithm or SPEA is a novel approach for phase etimation based on [this](https://arxiv.org/pdf/2104.10285.pdf) recent paper. SPEA uses a variational approach to solve the phase estimation and *does not* require the eigenvector of the unitary matrix to be prepared beforehand.
-- This library contains the original algorithm proposed by the authors and **a modified approach** which aims to speed up the current "quantum execution" time *exponentially*
+- It proposes to give an **eigenstate and eigenvalue** pair of our Unitary in one successful execution of the algorithm. This can also be extended to find the full *spectral decomposition* of a matrix and has an application in finding out the energy states of a molecular hamiltonian.
+- This library contains the original algorithm proposed by the authors and **a modified approach** that uses a global maximum approach to update the state during the intermediate iterations of the algorithm.
+- The new **modified approach** was proposed keeping in mind that greedy choices in the algorithm may not always propose to be optimal. One advantage of this approach is in terms of *quantum execution* time. Since any quantum computer contains a classical controller through which it is accessed, calling the device multiple times incurs overhead in terms of the classical interfacing. While original appraoach uses *exponential* API calls for its execution, the modified approach only requires only a *constant* number of API calls to reach the optimal result.
+ 
+- **Original Algorithm**
+  - Class Name - `SPEA`
+  - Module Path - `modules/normal_SPEA.py`
+  - Main Folder - `Statistical QPE`
   
-  // to do...
+- **Modified Algorithm**
+  - Class Names - `global_max_SPEA` , `bundled_global_max_SPEA`, `bundled_global_max_alt_SPEA`
+  - Module Path - `modules/changed_SPEA.py`
+  - Main Folder - `Statistical QPE`
 
+  
+  
