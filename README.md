@@ -10,7 +10,8 @@ This is a library containing some `basic` and `novel` Quantum Phase Estimation a
   2. If the user is using anaconda distribution to utilise these modules, in the anaconda prompt, make a new virtual environment with `conda create -n yourenvname python=3.9` and install all the dependencies listed in `requirements.txt` file using `pip install -r requirements.txt`.
   3. If not, you should use `pip install -r requirements.txt` in your python environment.
   4. You are now ready to use the modules present in the `modules` directory, inside this enviroment.
-  5. All the other folders contain notebooks demonstrating the use of each of these algorithms and examples of simulations for higher dimensional, unitary matrices.
+  5. If using `conda`, follow the steps mentioned [here](http://echrislynch.com/2019/02/01/adding-an-environment-to-jupyter-notebooks/) to activate and add the environment to your jupyter notebook environments.
+  6. All the other folders contain notebooks demonstrating the use of each of these algorithms and examples of simulations for higher dimensional, unitary matrices.
  
 
 ## Algorithms
