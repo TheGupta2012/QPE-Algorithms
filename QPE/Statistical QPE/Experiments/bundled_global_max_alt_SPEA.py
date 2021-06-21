@@ -170,10 +170,17 @@ class bundled_SPEA_alternate():
         # return result
         return job_result
 
-    def get_eigen_pair(self, backend, progress=False, randomize=True,
+    def get_eigen_pair(self, backend, theta_left = 0, theta_right = 1,progress=False, randomize=True,
                        basis=None, basis_ind=None,target_cost = None,shots = 512):
         '''Finding the eigenstate pair for the unitary'''
         self.unitary_circuit = self.get_unitary_circuit(backend)
+        
+        if(theta_left > theta_right):
+            raise ValueError("Left bound for theta should be smaller than the right bound")
+        elif (theta_left<0) or (theta_right>1):
+            raise ValueError("Bounds of theta are [0,1].")
+        
+        
         
         if not isinstance(progress, bool):
             raise TypeError("Progress must be a boolean variable")
@@ -203,7 +210,7 @@ class bundled_SPEA_alternate():
         samples = self.resolution
 
         # initialization of range
-        left, right = 0, 1
+        left, right = theta_left, theta_right
 
         # generate the angles
         angles = np.linspace(left, right, samples)
@@ -240,7 +247,7 @@ class bundled_SPEA_alternate():
         best_phi = phi
 
         # the range upto which theta extends iin each iteration
-        angle_range = 0.5
+        angle_range = (right - left)/2
         # a parameter
         a = 1
         # start algorithm
@@ -250,8 +257,8 @@ class bundled_SPEA_alternate():
         while 1 - cost >= precision:
             # get angles, note if theta didn't change, then we need to
             # again generate the same range again
-            right = min(1, theta_max + angle_range/2)
-            left = max(0, theta_max - angle_range/2)
+            right = min(theta_right, theta_max + angle_range/2)
+            left = max(theta_left, theta_max - angle_range/2)
             if progress:
                 print("Right :", right)
                 print("Left :", left)

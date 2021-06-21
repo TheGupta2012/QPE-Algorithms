@@ -93,6 +93,7 @@ class SPEA():
             1+int(np.log2(self.dims))))
         
         qc.barrier()
+        # RANDOMNESS 1
         qc = transpile(qc,backend=backend,optimization_level = 3)
         
         return qc
@@ -111,7 +112,7 @@ class SPEA():
         qc1 = qc1.compose(phi, qubits=list(
             range(1, int(np.log2(self.dims))+1)))
         qc1.barrier()
-        
+        # RANDOMNESS 2
         qc1 = transpile(qc1, backend=backend,optimization_level=1)
 
         # get the circuit2
@@ -144,6 +145,7 @@ class SPEA():
             qc = self.get_circuit(state,backend,shots,theta)
             circuits.append(qc)
         
+        # RANDOMNESS 3
         # execute only once...
         counts = backend.run(circuits, shots=shots).result().get_counts()
         # get the cost for this theta
@@ -166,8 +168,9 @@ class SPEA():
           state is a normalized state in ndarray form'''
         result = {'cost': -1, 'theta': -1}
         # all theta values are iterated over for the same state
-
+        
         qc = self.get_circuit(state,backend,shots)
+        
         # execute only once...
         counts = backend.run(qc, shots=shots).result().get_counts()
         
@@ -198,6 +201,7 @@ class SPEA():
         # now , we have the best theta stored in phi
         # run circuit once again to get the value of C*
         
+        # RANDOMNESS 4
         qc = self.get_circuit(state, backend, shots, result['theta'])
         counts = backend.run(qc, shots=shots).result().get_counts()
         
@@ -210,12 +214,16 @@ class SPEA():
         # return the result
         return result
 
-    def get_eigen_pair(self, backend, algo='alternate', progress=False, randomize=True, target_cost=None
-                      , basis = None, basis_ind = None,shots=512):
+    def get_eigen_pair(self, backend, algo='alternate', theta_left = 0,theta_right = 1,progress=False, randomize=True, target_cost=None, basis = None, basis_ind = None,shots=512):
         '''Finding the eigenstate pair for the unitary'''
         
         # handle algorithm...
         self.unitary_circuit = self.get_unitary_circuit(backend)
+        
+        if(theta_left > theta_right):
+            raise ValueError("Left bound for theta should be smaller than the right bound")
+        elif (theta_left<0) or (theta_right>1):
+            raise ValueError("Bounds of theta are [0,1].")
         
         if not isinstance(algo, str):
             raise TypeError(
@@ -264,7 +272,7 @@ class SPEA():
         samples = self.resolution
 
         # initialization of range
-        left, right = 0, 1
+        left, right = theta_left, theta_right
         # generate the angles
         angles = np.linspace(left, right, samples)
 
@@ -279,7 +287,9 @@ class SPEA():
         best_phi = phi
 
         # the range upto which theta extends iin each iteration
-        angle_range = 0.5
+        angle_range = (right - left)/2
+        if progress:
+            print("Angle range :",angle_range)
         # a parameter
         a = 1
         # start algorithm
@@ -289,8 +299,8 @@ class SPEA():
         while 1 - cost >= precision:
             # get angles, note if theta didn't change, then we need to
             # again generate the same range again
-            right = min(1, theta_max + angle_range/2)
-            left = max(0, theta_max - angle_range/2)
+            right = min(theta_right, theta_max + angle_range/2)
+            left = max(theta_left, theta_max - angle_range/2)
             if progress:
                 print("Right :", right)
                 print("Left :", left)
