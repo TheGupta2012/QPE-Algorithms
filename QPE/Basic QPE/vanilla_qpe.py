@@ -206,6 +206,10 @@ class QPE():
             i+=1 
             j-=1 
         
+        if show:
+            print("Inverse Quantum Fourier transform")
+            display(IQFT.draw('mpl'))
+            
         #append circuit 
         qc.append(IQFT,qargs = [i for i in range(self.precision)])
         

@@ -12,6 +12,32 @@ from scipy.stats import unitary_group
 import matplotlib.pyplot as plt 
 
 class SPEA():
+    '''
+    This is a class which implements the Statistical Phase Estimation algorithm
+    paper1 - https://arxiv.org/pdf/2104.10285.pdf
+    paper2 - https://arxiv.org/pdf/1906.11401.pdf(discussion)
+    Attributes :
+        resolution(int) : the number of intervals the angle range has to be divided into
+        dims(int) : dimensions of the passed unitary matrix
+        c_unitary_gate(Unitary Gate) : the controlled unitary gate in our algorithm
+        error(int) : the number of places after decimal, upto which the cost of the algorithm
+                     would be estimated
+        itrations(int) : the maximum iterations after which the algorithm ends the computation
+        basis(list of np.ndarray) : the basis generated at the start of the algorithm
+        unitary_circuit(QuantumCircuit): a pre-transpiled QuantumCircuit which is applied during
+                            the algorithm
+    
+    Methods :
+        __get_basis_vectors(randomize) : Get the d dimensional basis for the initializtion of the algorithm
+        __get_unitary_circuit(backend) : Get the pre-transpiled circuit for the unitary matrix
+        __get_alternate_cost(angle,state,backend,shots) : Get the cost through the alternate method specified in the algorithm
+        __get_standard_cost(angle,state,backend,shots) : Get the cost through the standard method specified in the algorithm
+        __get_circuit(state,angle,backend,shots) : Get the completed circuit used inside the algorithm to estimate the phase
+        get_eigen_pair(backend, algo='alternate', theta_left,theta_right,progress, randomize, target_cost, basis, basis_ind,shots) : Get the eigenstate and eigenphase phase for the unitary matrix
+    
+    '''
+    
+    
     def __init__(self, unitary, resolution=50, error=3, max_iters=20):
         # handle resolution
         if not isinstance(resolution, int):
@@ -68,8 +94,13 @@ class SPEA():
         self.iterations = max_iters
         self.basis = []
 
-    def get_basis_vectors(self, randomize=True):
-        # get the d dimensional basis for the unitary provided
+    def __get_basis_vectors(self, randomize=True):
+        ''' Get the d dimensional basis for the unitary provided
+         Args : randomize (bool) : whether to pick a random basis or
+                not 
+         Returns:
+             a list of np.ndarrays which are used as the basis 
+             vectors '''
         if randomize == True:
             UR = unitary_group.rvs(self.dims)
         else:
@@ -80,8 +111,14 @@ class SPEA():
             basis.append(np.array(k, dtype=complex))
         return basis
 
-    def get_unitary_circuit(self, backend):
-        '''Return the pretranspiled circuit '''
+    def __get_unitary_circuit(self, backend):
+        '''Return the pretranspiled circuit
+        Args:
+            backend : the IBMQBackend on which we want to transpile. 
+                     If None, Default : 'qasm_simulator' 
+        Returns: QuantumCircuit containing the transpiled circuit
+                 for the controlled unitary
+        '''
         if backend is None:
             backend = Aer.get_backend('qasm_simulator')
         
@@ -98,11 +135,24 @@ class SPEA():
         
         return qc
     
-    def get_circuit(self, state, backend, shots,angle=None):
+    def __get_circuit(self, state, backend, shots,angle=None):
         '''Given an initial state ,
           return the assembled and transpiled 
           circuit that is generated with 
-          inverse rotation '''
+          inverse rotation 
+          
+          Args:
+              state(np.ndarray) : The eigenvector guess state for the initialization
+              backend(IBMQBackend) : the backend on which this circuit is going to be 
+                                  executed
+              shots(int) : the number of shots in our experiments
+              angle(float) : whether the returned circuit contains an inverse rotation 
+                            gate or not. If angle is None, no rotation gate attached
+                            Else, cp(angle) is attached on control qubit 0
+                            
+          Returns:
+              QuantumCircuit which is pre-transpiled according to the backend provided
+          '''
         # all theta values are iterated over for the same state
         phi = Initialize(state)
 
@@ -133,16 +183,30 @@ class SPEA():
         
         return qc
 
-    def get_standard_cost(self, angles, state, backend,shots):
+    def __get_standard_cost(self, angles, state, backend,shots):
         '''Given an initial state and a set of angles,
-          return the best cost and the associated angle
-          state is a normalized state in ndarray form'''
+          return the best cost and the associated angle.
+          Implements the standard method as specified in the paper.
+          
+          Args : 
+              angles(np.ndarray) : the set of angles on which we execute
+                                  the circuits
+              state(np.ndarray) : the initialization state provided
+              backend(IBMQBackend): the backend on which this circuit
+                                 needs to be executed
+              shots(int) : the number of shots used to execute this circuit
+          
+          Returns :
+              result(dict) : {result : (float), theta : (float)}
+                              result - the best cost given this set of angles
+                              theta - the best theta value amongst this set 
+                                      of angles'''
         result = {'cost': -1, 'theta': -1}
         # all theta values are iterated over for the same state
         circuits = []
 
         for theta in angles:
-            qc = self.get_circuit(state,backend,shots,theta)
+            qc = self.__get_circuit(state,backend,shots,theta)
             circuits.append(qc)
         
         # RANDOMNESS 3
@@ -162,14 +226,29 @@ class SPEA():
                 result['cost'] = C_val
         return result
 
-    def get_alternate_cost(self, angles, state, backend,shots):
+    def __get_alternate_cost(self, angles, state, backend,shots):
         '''Given an initial state and a set of angles,
-          return the best cost and the associated angle
-          state is a normalized state in ndarray form'''
+          return the best cost and the associated angle.
+          Implements the alternate method as specified in the paper1
+          and discussion of paper2.
+          
+          Args : 
+              angles(np.ndarray) : the set of angles on which we execute
+                                  the circuits
+              state(np.ndarray) : the initialization state provided
+              backend(IBMQBackend): the backend on which this circuit
+                                 needs to be executed
+              shots(int) : the number of shots used to execute this circuit
+          
+          Returns :
+              result(dict) : {result : (float), theta : (float)}
+                              result - the best cost given this set of angles
+                              theta - the best theta value amongst this set 
+                                      of angles'''
         result = {'cost': -1, 'theta': -1}
         # all theta values are iterated over for the same state
         
-        qc = self.get_circuit(state,backend,shots)
+        qc = self.__get_circuit(state,backend,shots)
         
         # execute only once...
         counts = backend.run(qc, shots=shots).result().get_counts()
@@ -202,7 +281,7 @@ class SPEA():
         # run circuit once again to get the value of C*
         
         # RANDOMNESS 4
-        qc = self.get_circuit(state, backend, shots, result['theta'])
+        qc = self.__get_circuit(state, backend, shots, result['theta'])
         counts = backend.run(qc, shots=shots).result().get_counts()
         
         try:
@@ -215,10 +294,31 @@ class SPEA():
         return result
 
     def get_eigen_pair(self, backend, algo='alternate', theta_left = 0,theta_right = 1,progress=False, randomize=True, target_cost=None, basis = None, basis_ind = None,shots=512):
-        '''Finding the eigenstate pair for the unitary'''
+        '''Finding the eigenstate pair for the unitary
+        Args : 
+            backend(IBMQBackend) : the backend on which the circuit needs to be executed
+            algo(str) : ['alternate','standard'] the algorithm to use as specified in the 
+                        paper1 section 3.
+            theta_left(float): the left bound for the search of eigenvalue. Default : 0
+            theta_right(float): the right bound for the search of eigenvalue. Default : 1
+            progress(bool) : Whether to show the progress as the algorithm runs
+            randomize(bool): Whether to choose random initialization of basis states or not
+                             If False, computational basis is chosen.
+            target_cost(float) : the min cost required to be achieved by the algorithm
+            basis(list of np.ndarray) : The basis to be used in the algorithm. 
+                                Note, if basis is specified, randomize value is ignored
+            basis_ind(int) : the index of the basis vector to be used as the initial state 
+                             vector
+            
+        Returns :
+            result(dict) : {cost :(float), theta :(float), state : (np.ndarray)
+                         cost - the cost with which the algorithm terminates
+                         theta - the eigenvalue estimated by SPEA
+                         state - the eigenvector estimated by SPEA   
         
+        '''
         # handle algorithm...
-        self.unitary_circuit = self.get_unitary_circuit(backend)
+        self.unitary_circuit = self.__get_unitary_circuit(backend)
         
         if(theta_left > theta_right):
             raise ValueError("Left bound for theta should be smaller than the right bound")
@@ -248,7 +348,7 @@ class SPEA():
 
         # first initialize the state phi
         if basis is None:
-            self.basis = self.get_basis_vectors(randomize)
+            self.basis = self.__get_basis_vectors(randomize)
         else:
             # is basis is specified, given as array of vectors...
             self.basis = basis 
@@ -278,9 +378,9 @@ class SPEA():
 
         # iterate once
         if algo == 'alternate':
-            result = self.get_alternate_cost(angles, phi, backend,shots)
+            result = self.__get_alternate_cost(angles, phi, backend,shots)
         else:
-            result = self.get_standard_cost(angles, phi, backend,shots)
+            result = self.__get_standard_cost(angles, phi, backend,shots)
         # get initial estimates
         cost = min(1,result['cost'])
         theta_max = result['theta']
@@ -323,9 +423,9 @@ class SPEA():
 
                 # iterate (angles would be same until theta is changed)
                 if algo == 'alternate':
-                    res = self.get_alternate_cost(angles, curr_phi, backend,shots)
+                    res = self.__get_alternate_cost(angles, curr_phi, backend,shots)
                 else:
-                    res = self.get_standard_cost(angles, curr_phi, backend,shots)
+                    res = self.__get_standard_cost(angles, curr_phi, backend,shots)
                 curr_cost = res['cost']
                 curr_theta = res['theta']
 
