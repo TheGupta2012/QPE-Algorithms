@@ -96,7 +96,6 @@ class bundled_SPEA_alternate():
         qc.barrier()
 
         qc = transpile(qc, backend=backend, optimization_level=3)
-        display(qc.draw('mpl'))
         return qc
 
     def get_circuit(self, state, backend, shots, angle=None):
