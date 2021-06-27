@@ -11,6 +11,7 @@ This is a library containing some `basic` and `novel` Quantum Phase Estimation a
   3. If not, you should use `pip install -r requirements.txt` in your python environment.
   4. You are now ready to use the modules present in the `modules` directory, inside this enviroment.
   5. If using `conda`, add the current environment to your jupyter notebook by typing `python -m ipykernel install --user --name=yourenvname` followed by `jupyter notebook` to run a jupyter instance in this environment
+  6. If you have `jupyter nbextensions` enabled, use [this](https://jupyter-contrib-nbextensions.readthedocs.io/en/latest/install.html) link to install them in your environment.
   7. All the other folders contain notebooks demonstrating the use of each of these algorithms and examples of simulations for higher dimensional, unitary matrices.
  
 
