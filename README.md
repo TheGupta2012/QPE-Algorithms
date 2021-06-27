@@ -1,5 +1,5 @@
 ## QPE-Library :atom:
-This is a library containing some `basic` and `novel` Quantum Phase Estimation algorithms. The four primary algorithms implemented are- 
+This is a *library* containing some `basic` and `novel` Quantum Phase Estimation algorithms. The four primary algorithms implemented are- 
   - Basic Quantum Phase Estimation algorithm
   - Iterative Quantum Phase Estimation algorithm
   - Kitaev's Phase Estimation algorithm
@@ -7,12 +7,11 @@ This is a library containing some `basic` and `novel` Quantum Phase Estimation a
 
 ## Steps to use
   1. Clone the repository using `git clone [url_of_repo.git]`. 
-  2. If the user is using anaconda distribution to utilise these modules, in the anaconda prompt, make a new virtual environment with `conda create -n yourenvname python=3.9`, activate it by typing `conda activate yourenvname` and install all the dependencies listed in `requirements.txt` file using `pip install -r requirements.txt`.
-  3. If not, you should use `pip install -r requirements.txt` in your python environment.
+  2. If using anaconda distribution, in the anaconda prompt, make a new virtual environment with `conda create -n yourenvname python=3.9`, activate by typing `conda activate yourenvname` and install dependenices using `pip install -r requirements.txt`.
+  3. If not, use `pip install -r requirements.txt` in your python environment.
   4. You are now ready to use the modules present in the `modules` directory, inside this enviroment.
   5. If using `conda`, add the current environment to your jupyter notebook by typing `python -m ipykernel install --user --name=yourenvname` followed by `jupyter notebook` to run a jupyter instance in this environment
   6. If you have `jupyter nbextensions` enabled, use [this](https://jupyter-contrib-nbextensions.readthedocs.io/en/latest/install.html) link to install them in your environment.
-  7. All the other folders contain notebooks demonstrating the use of each of these algorithms and examples of simulations for higher dimensional, unitary matrices.
  
 
 ## Algorithms
@@ -33,7 +32,7 @@ All algorithms have been implemented as python classes and have support for runn
   
 **Iterative Phase Estimation Algorithm**
 - The iterative phase estimation algorithm(IQPE) is based on the principle that reducing the width of the circuit in exchange for its depth results in smaller circuits which reduce the *interaction* between qubits thus, reducing errors. 
-- It has a distinctive feature called `unknown` which uses binary exponentiation to reduce the number of unitary applications in simulation. This feature is only utilised when `unknown` is set to `False`.
+- The module has a distinctive feature called `unknown` which uses binary exponentiation to reduce the number of unitary applications in simulation. This feature is only utilised when `unknown` is set to `False`.
 - This algorithm proves as one of the best phase estimation routines for the present day *NISQ computers*.
   
   
@@ -61,7 +60,7 @@ All algorithms have been implemented as python classes and have support for runn
 - It proposes to give an **eigenstate and eigenvalue** pair of our Unitary in one successful execution of the algorithm. This can also be extended to find the full *spectral decomposition* of a matrix.
 - This library contains the original algorithm proposed by the authors and **a modified approach** that uses a global maximum approach to update the state during the intermediate iterations of the algorithm.
 - The new **modified approach** was proposed keeping in mind that greedy choices in the algorithm may not always propose to be optimal. One advantage of this approach is in terms of *quantum execution* time. 
-- Since any quantum computer contains a classical controller through which it is accessed, calling the device multiple times incurs overhead in terms of the classical interfacing. While original appraoach uses *exponential* API calls for its execution, the modified approach only requires only a *constant* number of API calls to reach the optimal result.
+- Since any quantum computer contains a classical controller through which it is accessed, calling the device multiple times incurs overhead in terms of the classical interfacing. While original appraoach uses *exponential* API calls for its execution, the modified approach only requires only a *constant* number of API calls to reach the result.
   
 <img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/spea_circuit.PNG" height = 67% width = 55%>
  
