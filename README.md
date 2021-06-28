@@ -15,7 +15,7 @@ This is a *library* containing some `basic` and `novel` Quantum Phase Estimation
  
 
 ## Algorithms
-All algorithms have been implemented as python classes and have support for running in the `ibmq-backends` and on the simulator provided by `Aer`.
+All algorithms have been implemented as python classes and have support for running on an `IBMQBackend` and on the simulator provided by `Aer`.
 
 **Basic Phase Estimation Algorithm**
 - This basic QPE algorithm is based on the principles of phase kickback and inverse Quantum Fourier Transform.
@@ -33,15 +33,14 @@ All algorithms have been implemented as python classes and have support for runn
 **Iterative Phase Estimation Algorithm**
 - The iterative phase estimation algorithm(IQPE) is based on the principle that reducing the width of the circuit in exchange for its depth results in smaller circuits which reduce the *interaction* between qubits thus, reducing errors. 
 - The module has a distinctive feature called `unknown` which uses binary exponentiation to reduce the number of unitary applications in simulation. This feature is only utilised when `unknown` is set to `False`.
-- This algorithm proves as one of the best phase estimation routines for the present day *NISQ computers*.
+- This algorithm proves as *one of the best* phase estimation routines for the present day *NISQ computers*.
   
   
 - Class Name : `general_IQPE`
 - Module Path : `modules/iterative_qpe.py` 
 - Main folder : `Iterative QPE` 
 
-<img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Iterative%20QPE/IQPE_circ.JPG" height = 45% width = 58% title = "IQPE Circuit">
-
+<img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Iterative%20QPE/IQPE_circ.JPG" height = 55% width = 78% title = "IQPE Circuit">
 
 
 **Kitaev's Phase Estimation Algorithm**
@@ -51,18 +50,16 @@ All algorithms have been implemented as python classes and have support for runn
 - Module Path : `modules/kitaev_qpe.py`
 - Main Folder : `Kitaev's Algorithm`
 
-<img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Kitaev's%20Algorithm/KQPE_circ_1qubit.JPG" height = 35% width = 53% title = "Kitaev's Circuit">
+<img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Kitaev's%20Algorithm/KQPE_circ_1qubit.JPG" height = 48% width = 73% title = "Kitaev's Circuit">
 
 
 **Statistical Phase Estimation Algorithm** 🆕
-- All the above algorithms suffer from a limitation that each one of them requires **the eigenvector** of the unitary matrix for the phase estimation procesdure.
-- Statistical Phase Estimation Algorithm or SPEA is a novel approach for phase etimation based on [this](https://arxiv.org/pdf/2104.10285.pdf) recent paper. SPEA uses a variational approach to solve the phase estimation and *does not* require the eigenvector of the unitary matrix to be prepared beforehand.
-- It proposes to give an **eigenstate and eigenvalue** pair of our Unitary in one successful execution of the algorithm. This can also be extended to find the full *spectral decomposition* of a matrix.
-- This library contains the original algorithm proposed by the authors and **a modified approach** that uses a global maximum approach to update the state during the intermediate iterations of the algorithm.
-- The new **modified approach** was proposed keeping in mind that greedy choices in the algorithm may not always propose to be optimal. One advantage of this approach is in terms of *quantum execution* time. 
+- Statistical Phase Estimation Algorithm or SPEA is a novel approach for phase etimation based on [this](https://arxiv.org/pdf/2104.10285.pdf) recent paper. SPEA uses a variational approach to solve the phase estimation and **does not** require the eigenvector of the unitary matrix to be prepared beforehand.
+- It proposes to give an **eigenstate and eigenvalue** pair of our Unitary in one successful execution of the algorithm which can be extended to find the full *spectral decomposition* of a matrix.
+- This library contains the original algorithm proposed by the authors and **a modified algorithm**. The **modified approach** was proposed keeping in mind that greedy choices in the original algorithm may not always propose to be optimal. One advantage of this approach is in terms of *quantum execution* time. 
 - Since any quantum computer contains a classical controller through which it is accessed, calling the device multiple times incurs overhead in terms of the classical interfacing. While original appraoach uses *exponential* API calls for its execution, the modified approach only requires only a *constant* number of API calls to reach the result.
   
-<img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/spea_circuit.PNG" height = 67% width = 55%>
+<img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/spea_circuit.PNG" height = 73% width = 75%>
  
 - **Original Algorithm**
   - Class Name - `SPEA`
