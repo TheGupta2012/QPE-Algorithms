@@ -5,7 +5,7 @@ import numpy as np
 
 class KQPE():
     '''
-    Implements the Kitaec's phase estimation algorithm where a single circuit
+    Implements the Kitaev's phase estimation algorithm where a single circuit
     is used to estimate the phase of a unitary but the measurements are 
     exponential.
     Attributes : 
