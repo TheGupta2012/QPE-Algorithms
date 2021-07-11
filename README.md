@@ -25,7 +25,7 @@ This is a *library* containing some `basic` and `novel` Quantum Phase Estimation
  
 
 ## Algorithms
-All algorithms have been implemented as python classes and have support for running on an `IBMQBackend` and on the simulator provided by `Aer`.
+All algorithms have been implemented as python classes and have support for running on an `IBMQBackend` and on the simulator provided by `Aer`. For the examples, each subfolder contains a jupyter notebook depicting the usage of the implemented algorithms.
 
 ### Basic QPE Algorithm
 - This basic QPE algorithm is based on the principles of phase kickback and inverse Quantum Fourier Transform.
