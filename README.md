@@ -6,7 +6,7 @@
     - [Basic QPE Algorithm](#basic-qpe-algorithm)
     - [Iterative QPE Algorithm](#iterative-qpe-algorithm)
     - [Kitaev's QPE Algorithm](#kitaevs-qpe-algorithm)
-    - [Statistical QPE Algorithm](statistical-qpe-algorithm)
+    - [Statistical QPE Algorithm](#statistical-qpe-algorithm)
 
 ## Overview
 This is a *library* containing some `basic` and `novel` Quantum Phase Estimation algorithms. The four primary algorithms implemented are- 
