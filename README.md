@@ -6,7 +6,7 @@
     - [Basic QPE Algorithm](#basic-qpe-algorithm)
     - [Iterative QPE Algorithm](#iterative-qpe-algorithm)
     - [Kitaev's QPE Algorithm](#kitaevs-qpe-algorithm)
-    - [Statistical QPE Algorithm 🆕](statistical-qpe-algorithm-🆕)
+    - [Statistical QPE Algorithm](statistical-qpe-algorithm)
 
 ## Overview
 This is a *library* containing some `basic` and `novel` Quantum Phase Estimation algorithms. The four primary algorithms implemented are- 
@@ -37,7 +37,7 @@ All algorithms have been implemented as python classes and have support for runn
 <hspace><hspace>
 <img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Basic%20QPE/QPE_circ.JPG" align = "left" height = 50% width = 45% title = "Basic QPE">
 <img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Basic%20QPE/QPE_circ_optimized.JPG" align = "left" height = 50% width = 45% title = "Optimized QPE">
-<br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br>
 
   
 ### Iterative QPE Algorithm
@@ -63,7 +63,8 @@ All algorithms have been implemented as python classes and have support for runn
 <img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Kitaev's%20Algorithm/KQPE_circ_1qubit.JPG" height = 48% width = 73% title = "Kitaev's Circuit">
 
 
-### Statistical QPE Algorithm 🆕
+### Statistical QPE Algorithm 
+   
 - Statistical Phase Estimation Algorithm or SPEA is a novel approach for phase etimation based on [this](https://arxiv.org/pdf/2104.10285.pdf) recent paper. SPEA uses a variational approach to solve the phase estimation and **does not** require the eigenvector of the unitary matrix to be prepared beforehand.
 - It proposes to give an **eigenstate and eigenvalue** pair of our Unitary in one successful execution of the algorithm which can be extended to find the full *spectral decomposition* of a matrix.
 - This library contains the original algorithm proposed by the authors and **a modified algorithm**. The **modified approach** was proposed keeping in mind that greedy choices in the original algorithm may not always propose to be optimal. One advantage of this approach is in terms of *quantum execution* time. 
