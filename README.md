@@ -33,6 +33,7 @@ All algorithms have been implemented as python classes and have support for runn
 - Class Names : `basic_QPE`, `fast_QPE`
 - Module Path : `modules/vanilla_qpe.py`, `modules/faster_basic_qpe.py`
 - Main folder : `Basic QPE`
+- Examples : [Notebook](https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Basic%20QPE/Basic%20QPE.ipynb)
 
 <hspace><hspace>
 <img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Basic%20QPE/QPE_circ.JPG" align = "left" height = 50% width = 45% title = "Basic QPE">
@@ -49,7 +50,8 @@ All algorithms have been implemented as python classes and have support for runn
 - Class Name : `general_IQPE`
 - Module Path : `modules/iterative_qpe.py` 
 - Main folder : `Iterative QPE` 
-
+- Examples and Tests: [Notebook](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Iterative%20QPE/Iterative%20QPE.ipynb)
+    
 <img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Iterative%20QPE/IQPE_circ.JPG" height = 55% width = 78% title = "IQPE Circuit">
   
   
@@ -59,7 +61,8 @@ All algorithms have been implemented as python classes and have support for runn
 - Class Name : `KQPE`
 - Module Path : `modules/kitaev_qpe.py`
 - Main Folder : `Kitaev's Algorithm`
-
+- Examples : [Notebook](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Kitaev%27s%20Algorithm/Kitaev%20QPE.ipynb)
+    
 <img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Kitaev's%20Algorithm/KQPE_circ_1qubit.JPG" height = 48% width = 73% title = "Kitaev's Circuit">
 
 
@@ -76,11 +79,11 @@ All algorithms have been implemented as python classes and have support for runn
   - Class Name - `SPEA`
   - Module Path - `modules/normal_SPEA.py`
   - Main Folder - `Statistical QPE`
-  
+  - Examples : [Standard Approach](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/Statistical%20QPE.ipynb)
 - **Modified Algorithm**
   - Class Names - `global_max_SPEA` , `bundled_global_max_SPEA`, `bundled_global_max_alt_SPEA`
   - Module Path - `modules/changed_SPEA.py`
   - Main Folder - `Statistical QPE`
-
+  - Examples : [Standard Approach](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/Statistical%20QPE-Changed%20Algorithm%20.ipynb)
   
   
