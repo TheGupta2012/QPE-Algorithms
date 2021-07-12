@@ -88,5 +88,5 @@ All algorithms have been implemented as python classes and have support for runn
   - Main Folder - `Statistical QPE`
   - Examples : 
     - [Standard Approach](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/Statistical%20QPE-Changed%20Algorithm%20.ipynb)
-    - [Alternate Approach](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/Alternate%20Approach/SPEA%20-%20Changed%20algorithm%20and%20Alternate%20approach.ipynb
+    - [Alternate Approach](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/Alternate%20Approach/SPEA%20-%20Changed%20algorithm%20and%20Alternate%20approach.ipynb)
   
