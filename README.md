@@ -79,11 +79,14 @@ All algorithms have been implemented as python classes and have support for runn
   - Class Name - `SPEA`
   - Module Path - `modules/normal_SPEA.py`
   - Main Folder - `Statistical QPE`
-  - Examples : [Standard Approach](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/Statistical%20QPE.ipynb)
-- **Modified Algorithm**
+  - Examples
+    - [Standard Approach](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/Statistical%20QPE.ipynb)
+    - [Alternate Approach](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/Alternate%20Approach/SPEA%20-%20Original%20algorithm%20and%20Alternate%20approach.ipynb)
+- **Modified Algorithm** 
   - Class Names - `global_max_SPEA` , `bundled_global_max_SPEA`, `bundled_global_max_alt_SPEA`
   - Module Path - `modules/changed_SPEA.py`
   - Main Folder - `Statistical QPE`
-  - Examples : [Standard Approach](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/Statistical%20QPE-Changed%20Algorithm%20.ipynb)
-  
+  - Examples : 
+    - [Standard Approach](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/Statistical%20QPE-Changed%20Algorithm%20.ipynb)
+    - [Alternate Approach](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Statistical%20QPE/Alternate%20Approach/SPEA%20-%20Changed%20algorithm%20and%20Alternate%20approach.ipynb
   
