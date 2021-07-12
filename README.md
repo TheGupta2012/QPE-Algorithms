@@ -33,7 +33,7 @@ All algorithms have been implemented as python classes and have support for runn
 - Class Names : `basic_QPE`, `fast_QPE`
 - Module Path : `modules/vanilla_qpe.py`, `modules/faster_basic_qpe.py`
 - Main folder : `Basic QPE`
-- Examples : [Notebook](https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Basic%20QPE/Basic%20QPE.ipynb)
+- Examples : [Notebook](https://nbviewer.jupyter.org/github/TheGupta2012/QPE-Algorithms/blob/master/QPE/Basic%20QPE/Basic%20QPE.ipynb)
 
 <hspace><hspace>
 <img src = "https://github.com/TheGupta2012/QPE-Algorithms/blob/master/QPE/Basic%20QPE/QPE_circ.JPG" align = "left" height = 50% width = 45% title = "Basic QPE">
